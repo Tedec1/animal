@@ -70,8 +70,9 @@ void play_game(node*);
 node* read_game_tree();
 void write_game_tree(node*);
 void delete_game_tree(node*);
-void req_helper(node* &cur, ifstream &fin);
-// TODO: Add helper method templates here, such as read_preorder().
+void build_tree_req(node* &cur, ifstream &fin);
+bool valid_response(string& s);
+
 
 /**
  * Handles showing the main menu/basic UI
@@ -121,11 +122,11 @@ node* read_game_tree() {
     node* head = new node;
     getline(fin,s);
     head->data = s.substr(3);
-    req_helper(head, fin);
+    build_tree_req(head, fin);
     return head;
 }
 
-void req_helper(node* &cur, ifstream &fin){
+void build_tree_req(node* &cur, ifstream &fin){
     if(fin.eof()){
         return;
     }
@@ -134,14 +135,14 @@ void req_helper(node* &cur, ifstream &fin){
     if(!cur->left){
         cur->left = new node(s.substr(3));
         if(s[1] == 'Q'){
-            req_helper(cur->left,fin);
+            build_tree_req(cur->left, fin);
         }
     }
     getline(fin,s);
     if(!cur->right){
         cur->right = new node(s.substr(3));
         if(s[1] == 'Q'){
-            req_helper(cur->right,fin);
+            build_tree_req(cur->right, fin);
         }
     }
 }
@@ -152,7 +153,26 @@ void req_helper(node* &cur, ifstream &fin){
  * @param root Root of the game tree
  */
 void play_game(node* root) {
-    print2D(root);
+    string s;
+    while(root != nullptr){
+        try {
+            cout << root->data << endl;
+            cin >> s;
+            if(valid_response(s)){
+                root = root->left;
+            } else { //TODO: fix me
+                root = root->right;
+            }
+        } catch (runtime_error& e){
+            cout << e.what();
+            continue;
+        }
+    }
+    if(valid_response(s)){
+        cout << "I won!!" << endl;
+    } else {
+        cout << "I lost, boo!" << endl;
+    }
 }
 
 
@@ -173,4 +193,21 @@ void delete_game_tree(node* root) {
     // Optional. Do a post-order deletion of the game tree.
     // This isn't strictly needed as the program exits after this is called,
     // which frees up all the memory anyway.
+}
+
+
+bool valid_response(string& s){
+    const vector<string> yes_tests = {"Y", "y", "yes", "Yes", "YES"};
+    const vector<string> no_tests = { "N", "n", "no", "No", "NO"};
+    for (const string& test:yes_tests) {
+        if(s == test){
+            return true;
+        }
+    }
+    for (const string& test:no_tests) {
+        if(s == test){
+            return false;
+        }
+    }
+    throw runtime_error("Sorry, I didn't recognize your input, please type again");
 }
