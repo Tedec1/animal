@@ -156,22 +156,25 @@ void play_game(node* root) {
     string s;
     while(root != nullptr){
         try {
-            cout << root->data << endl;
+            cout << root->data << "(y/n)" << endl;
             cin >> s;
             if(valid_response(s)){
                 root = root->left;
-            } else { //TODO: fix me
-                root = root->right;
+                if(root == nullptr){
+                    cout << "YAY! I won!!" << endl;
+                }
+            } else {
+                if(root->right == nullptr){
+                    cout << "I lost, boo!" << endl;
+                    write_game_tree(root);
+                } else {
+                    root = root->right;
+                }
             }
         } catch (runtime_error& e){
             cout << e.what();
             continue;
         }
-    }
-    if(valid_response(s)){
-        cout << "I won!!" << endl;
-    } else {
-        cout << "I lost, boo!" << endl;
     }
 }
 
@@ -182,7 +185,14 @@ void play_game(node* root) {
  * @param root The root of the tree
  */
 void write_game_tree(node* root) {
-	// TODO: Implement me.
+    string s;
+    cout <<"would you like to expand the game tree? (y/n)";
+    cin >> s;
+//    while(){
+//
+//    }
+//
+
 }
 
 /**
