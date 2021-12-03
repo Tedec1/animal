@@ -70,6 +70,7 @@ void write_game_tree(node*);
 void delete_game_tree(node*);
 void read_preorder(node* &cur, ifstream &fin);
 
+void write_preorder(node* &root, string &s);
 void expand_game_tree(node* root, const vector<bool>& answers);
 string trim(string s);
 bool get_yesno(string msg);
@@ -123,6 +124,7 @@ node* read_game_tree() {
     getline(fin,s);
     head->data = s.substr(3);
     read_preorder(head, fin);
+    print2D(head);
     return head;
 }
 
@@ -132,6 +134,7 @@ void read_preorder(node* &cur, ifstream &fin){
     }
     string s;
     getline(fin,s);
+    if(s.empty()) return;
     if(!cur->left){
         cur->left = new node(s.substr(3));
         if(s[1] == 'Q'){
@@ -139,6 +142,7 @@ void read_preorder(node* &cur, ifstream &fin){
         }
     }
     getline(fin,s);
+    if(s.empty()) return;
     if(!cur->right){
         cur->right = new node(s.substr(3));
         if(s[1] == 'Q'){
@@ -185,7 +189,8 @@ void expand_game_tree(node* root, const vector<bool>& answers){
         return;
     }
     cout << "I asked the following:\n";
-    for (int i = 0; i < answers.size() - 1; i++) {
+    int i = 0;
+    for (;i < answers.size() - 2; i++) {
         if(answers[i]){
             cout << root->data << " YES\n";
             root = root->left;
@@ -194,15 +199,18 @@ void expand_game_tree(node* root, const vector<bool>& answers){
             root = root->right;
         }
     }
-    cout << root->data << " NO\n";
+    cout << root->data << (answers[i + 1] ? " YES\n" :" NO\n");
+    cout << root->left->data << " NO\n";
     cout << "Enter a new animal in the form of a question,\n e.g., 'Is it a whale?':";
     string left;
     getline(cin,left);
     cout << "Now enter a question for which the answer is 'yes' for your new\n animal, and which does not contradict your previous answers:";
-    string right;
-    getline(cin,right);
-    root->right = new node(right);
+    string parentQ;
+    getline(cin,parentQ);
+    node temp = *root->right;
+    root->right = new node(parentQ);
     root->right->left = new node(left);
+    root->right->right = new node(temp.data);
 }
 
 /**
@@ -210,10 +218,32 @@ void expand_game_tree(node* root, const vector<bool>& answers){
  * @param root The root of the tree
  */
 void write_game_tree(node* root) {
-    ofstream out;
-
+    ofstream file;
+    file.open("animal_game_tree.txt");
+    cout << "starting to write tree to file...\n";
+    string s{};
+    write_preorder(root,s);
+    s = s.substr(0,s.size() - 1);
+    file << s;
+    file.close();
+    cout << "file has been written!\n";
 }
-
+void write_preorder(node* &root, string &s){
+    if(root == nullptr){
+        return;
+    }
+    string res = "#";
+    if(root->right || root->left){
+        res += "Q ";
+    } else {
+        res += "A ";
+    }
+    res += root->data;
+    res += '\n';
+    s += res;
+    write_preorder(root->left,s);
+    write_preorder(root->right,s);
+}
 /**
  * Deletes the game tree
  * @param root Root of the game tree
