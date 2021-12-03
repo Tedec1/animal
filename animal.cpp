@@ -33,43 +33,11 @@ public:
     node* right;
 };
 
-#include <bits/stdc++.h>
-#define COUNT 10
-void print2DUtil(node *root, int space)
-{
-    // Base case
-    if (root == NULL)
-        return;
-
-    // Increase distance between levels
-    space += COUNT;
-
-    // Process right child first
-    print2DUtil(root->right, space);
-
-    // Print current node after space
-    // count
-    cout<<endl;
-    for (int i = COUNT; i < space; i++)
-        cout<<" ";
-    cout<<root->data<<"\n";
-
-    // Process left child
-    print2DUtil(root->left, space);
-}
-
-// Wrapper over print2DUtil()
-void print2D(node *root)
-{
-    // Pass initial space count as 0
-    print2DUtil(root, 0);
-}
 void play_game(node*);
 node* read_game_tree();
 void write_game_tree(node*);
 void delete_game_tree(node*);
 void read_preorder(node* &cur, ifstream &fin);
-
 void write_preorder(node* &root, string &s);
 void expand_game_tree(node* root, const vector<bool>& answers);
 string trim(string s);
@@ -108,7 +76,6 @@ int main() {
 		}
 		if (choice == 3) break;
 	}
-
 	delete_game_tree(root);
 	return 0;
 }
@@ -124,7 +91,6 @@ node* read_game_tree() {
     getline(fin,s);
     head->data = s.substr(3);
     read_preorder(head, fin);
-    print2D(head);
     return head;
 }
 
