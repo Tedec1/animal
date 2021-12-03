@@ -64,15 +64,15 @@ void print2D(node *root)
     // Pass initial space count as 0
     print2DUtil(root, 0);
 }
-
-
 void play_game(node*);
 node* read_game_tree();
 void write_game_tree(node*);
 void delete_game_tree(node*);
-void build_tree_req(node* &cur, ifstream &fin);
-bool valid_response(string& s);
+void read_preorder(node* &cur, ifstream &fin);
 
+void expand_game_tree(node* root, const vector<bool>& answers);
+string trim(string s);
+bool get_yesno(string msg);
 
 /**
  * Handles showing the main menu/basic UI
@@ -122,11 +122,11 @@ node* read_game_tree() {
     node* head = new node;
     getline(fin,s);
     head->data = s.substr(3);
-    build_tree_req(head, fin);
+    read_preorder(head, fin);
     return head;
 }
 
-void build_tree_req(node* &cur, ifstream &fin){
+void read_preorder(node* &cur, ifstream &fin){
     if(fin.eof()){
         return;
     }
@@ -135,14 +135,14 @@ void build_tree_req(node* &cur, ifstream &fin){
     if(!cur->left){
         cur->left = new node(s.substr(3));
         if(s[1] == 'Q'){
-            build_tree_req(cur->left, fin);
+            read_preorder(cur->left, fin);
         }
     }
     getline(fin,s);
     if(!cur->right){
         cur->right = new node(s.substr(3));
         if(s[1] == 'Q'){
-            build_tree_req(cur->right, fin);
+            read_preorder(cur->right, fin);
         }
     }
 }
@@ -153,20 +153,22 @@ void build_tree_req(node* &cur, ifstream &fin){
  * @param root Root of the game tree
  */
 void play_game(node* root) {
-    string s;
+    node head = *root;
+    vector<bool> answers{};
     while(root != nullptr){
         try {
-            cout << root->data << "(y/n)" << endl;
-            cin >> s;
-            if(valid_response(s)){
+            if(get_yesno(root->data + "(y/n)")){
+                answers.push_back(true);
                 root = root->left;
                 if(root == nullptr){
                     cout << "YAY! I won!!" << endl;
                 }
             } else {
+                answers.push_back(false);
                 if(root->right == nullptr){
                     cout << "I lost, boo!" << endl;
-                    write_game_tree(root);
+                    expand_game_tree(&head,answers);
+                    return;
                 } else {
                     root = root->right;
                 }
@@ -178,20 +180,37 @@ void play_game(node* root) {
     }
 }
 
-
+void expand_game_tree(node* root, const vector<bool>& answers){
+    if(!get_yesno("would you like to expand the game tree? (y/n)")){
+        return;
+    }
+    cout << "I asked the following:\n";
+    for (int i = 0; i < answers.size() - 1; i++) {
+        if(answers[i]){
+            cout << root->data << " YES\n";
+            root = root->left;
+        } else {
+            cout << root->data << " NO\n";
+            root = root->right;
+        }
+    }
+    cout << root->data << " NO\n";
+    cout << "Enter a new animal in the form of a question,\n e.g., 'Is it a whale?':";
+    string left;
+    getline(cin,left);
+    cout << "Now enter a question for which the answer is 'yes' for your new\n animal, and which does not contradict your previous answers:";
+    string right;
+    getline(cin,right);
+    root->right = new node(right);
+    root->right->left = new node(left);
+}
 
 /**
  * Writes the game tree, sets up a recursive call to write_preorder();
  * @param root The root of the tree
  */
 void write_game_tree(node* root) {
-    string s;
-    cout <<"would you like to expand the game tree? (y/n)";
-    cin >> s;
-//    while(){
-//
-//    }
-//
+    ofstream out;
 
 }
 
@@ -206,18 +225,32 @@ void delete_game_tree(node* root) {
 }
 
 
-bool valid_response(string& s){
-    const vector<string> yes_tests = {"Y", "y", "yes", "Yes", "YES"};
-    const vector<string> no_tests = { "N", "n", "no", "No", "NO"};
-    for (const string& test:yes_tests) {
-        if(s == test){
-            return true;
+bool get_yesno(string msg) {
+    while (true) {
+        string input;
+
+        cout << msg << endl;
+        getline(cin, input);
+
+        input = trim(input);
+        for (int i = 0; i < input.size(); i++) {
+            input[i] = tolower(input[i]);
         }
+
+        if (input == "y" || input == "yes") return true;
+        if (input == "n" || input == "no") return false;
+
+        cout << "I didn't understand that. ";
+        cout << "Please enter y(es) or n(o).";
+        cout << endl;
     }
-    for (const string& test:no_tests) {
-        if(s == test){
-            return false;
-        }
-    }
-    throw runtime_error("Sorry, I didn't recognize your input, please type again");
+}
+
+string trim(string s) {
+    int a, b;
+
+    for (a = 0; a < s.size() && isspace(s[a]); a++);
+    for (b = s.size() - 1; b >= a && isspace(s[b]); b--);
+
+    return s.substr(a, b - a + 1);
 }
